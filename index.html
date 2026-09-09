@@ -334,7 +334,8 @@ map.on('load', async () => {
     'Al Salt', 'At Tafila', 'Zarqa', 'Ramla',
     'Rabba', 'Madaba', 'Al Jizah', 'Al-Ruseifa', 'Sakib',
     'Ashdod', 'Rishon LeZion', 'Arad', 'Netanya', 'Deir el-Balah',
-    'Tafas', 'Tafs'
+    'Tafas', 'Tafs',
+    'Sahab', 'Al Karak', 'Bureij', 'al-Qarara'
   ];
   const nameNotHidden = ['!', ['in', ['coalesce', ['get', 'name:latin'], ['get', 'name_en'], ['get', 'name']], ['literal', HIDDEN_PLACE_NAMES]]];
   for (const id of ['label_city', 'label_city_capital', 'label_town', 'label_village', 'label_other']) {
@@ -349,7 +350,7 @@ map.on('load', async () => {
   if (map.getLayer('label_country_3')) {
     map.setLayoutProperty('label_country_3', 'text-offset', [
       'case',
-      ['==', ['get', 'iso_a2'], 'PS'], ['literal', [3, -10.3]],
+      ['==', ['get', 'iso_a2'], 'PS'], ['literal', [4.5, -15]],
       ['literal', [0, 0]]
     ]);
   }

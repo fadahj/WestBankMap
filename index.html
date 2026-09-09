@@ -319,6 +319,17 @@ map.on('load', async () => {
     ]);
   }
 
+  // Hide a few specific place labels cluttering the view — everything else
+  // in these layers stays, just these four names filtered out.
+  const HIDDEN_PLACE_NAMES = ['Al Salt', 'At Tafila', 'Zarqa', 'Ramla'];
+  const nameNotHidden = ['!', ['in', ['coalesce', ['get', 'name:latin'], ['get', 'name_en'], ['get', 'name']], ['literal', HIDDEN_PLACE_NAMES]]];
+  if (map.getLayer('label_city')) {
+    map.setFilter('label_city', ['all', map.getFilter('label_city'), nameNotHidden]);
+  }
+  if (map.getLayer('label_town')) {
+    map.setFilter('label_town', ['all', map.getFilter('label_town'), nameNotHidden]);
+  }
+
   // Nudge the "Occupied West Bank" label right and up, off of Jerusalem/the
   // Green Line and into the gap between the Nablus and Ramallah labels,
   // without touching any other country label's position.

@@ -272,7 +272,7 @@ const map = new maplibregl.Map({
   container: 'map',
   style: 'https://tiles.openfreemap.org/styles/positron',
   center: [35.267, 31.948], // West Bank centroid (UN OCHA COD-AB admin1)
-  zoom: 7.86, // ~20% closer than 7.6, keeping the West Bank as the focus
+  zoom: 8.12, // ~20% closer again (7.86 -> 8.12), West Bank still the focus
   interactive: false, // scroll drives the story, not free map interaction
   attributionControl: false
 });
@@ -293,10 +293,19 @@ map.on('load', async () => {
   // Force every text label to Latin script. This style's default text-field
   // appends "name:nonlatin" (Hebrew/Arabic here) on a second line whenever
   // present — override to a straight Latin-name coalesce instead.
+  // NOTE: deliberately no fallback to the raw "name" field — for a handful of
+  // minor places (e.g. a small village near Al Jizah, Jordan) neither
+  // name:latin nor name_en exist in the source data, and "name" itself is in
+  // the local script. Falling back to it would leak Arabic/Hebrew text back
+  // in for exactly those places. Better to show no label than a non-Latin one.
+  // NOTE: "name_en" is NOT a safe Latin fallback — for places with no real
+  // English name on record, this style's data just repeats the local-script
+  // name in that field too (e.g. a village near Al Jizah has name_en ==
+  // "المحمدية", not a transliteration). Only name:latin is trustworthy.
   const LATIN_ONLY_TEXT_FIELD = [
     'case',
     ['==', ['get', 'iso_a2'], 'PS'], 'Occupied West Bank',
-    ['coalesce', ['get', 'name:latin'], ['get', 'name_en'], ['get', 'name']]
+    ['coalesce', ['get', 'name:latin'], '']
   ];
   for (const layer of map.getStyle().layers) {
     if (layer.type !== 'symbol') continue;
@@ -320,14 +329,18 @@ map.on('load', async () => {
   }
 
   // Hide a few specific place labels cluttering the view — everything else
-  // in these layers stays, just these four names filtered out.
-  const HIDDEN_PLACE_NAMES = ['Al Salt', 'At Tafila', 'Zarqa', 'Ramla'];
+  // in these layers stays, just these names filtered out.
+  const HIDDEN_PLACE_NAMES = [
+    'Al Salt', 'At Tafila', 'Zarqa', 'Ramla',
+    'Rabba', 'Madaba', 'Al Jizah', 'Al-Ruseifa', 'Sakib',
+    'Ashdod', 'Rishon LeZion', 'Arad', 'Netanya', 'Deir el-Balah',
+    'Tafas', 'Tafs'
+  ];
   const nameNotHidden = ['!', ['in', ['coalesce', ['get', 'name:latin'], ['get', 'name_en'], ['get', 'name']], ['literal', HIDDEN_PLACE_NAMES]]];
-  if (map.getLayer('label_city')) {
-    map.setFilter('label_city', ['all', map.getFilter('label_city'), nameNotHidden]);
-  }
-  if (map.getLayer('label_town')) {
-    map.setFilter('label_town', ['all', map.getFilter('label_town'), nameNotHidden]);
+  for (const id of ['label_city', 'label_city_capital', 'label_town', 'label_village', 'label_other']) {
+    if (map.getLayer(id)) {
+      map.setFilter(id, ['all', map.getFilter(id), nameNotHidden]);
+    }
   }
 
   // Nudge the "Occupied West Bank" label right and up, off of Jerusalem/the

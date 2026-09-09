@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>West Bank Settlements & Outposts — Growth Since 1967</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+<link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* The National brand — verified against a live News-section article
+       (thenationalnews.com/news/.../one-in-three-new-web-pages...), not just
+       the generic :root variables, which turned out to be misleading: the
+       site's --global-primary-font-family is 'Playfair Display', but that
+       face is only actually used for opinion pull-quotes — every real News
+       article headline, standfirst, byline and kicker renders in Inter. */
+    --tn-primary:#004E79;      /* --color-primary; also the "News" kicker color */
+    --tn-primary-hover:#7FA6BC;
+    --tn-ink:#000;             /* headline / byline-name color */
+    --tn-standfirst:#999;      /* dek/standfirst color (rgb(153,153,153) on live article) */
+    --tn-label:#767676;        /* byline-date / secondary label color */
+    --tn-sans:"Inter", "Helvetica Neue", Arial, sans-serif; /* the ONLY font real News content uses */
+
+    --shadow-small:0px 1px 2px 0px rgba(0,0,0,.10), 0px 1px 3px 0px rgba(103,110,118,.10);
+    --shadow-card:0px 4px 4px -2px rgba(0,0,0,.10), 0px 10px 15px -3px rgba(0,0,0,.10);
+    --radius:0.25rem; /* --global-border-radius-1 */
+
+    /* data-point marker colors — kept distinct from brand chrome; these encode
+       feature type (settlement/outpost/etc), not decoration, so they stay as
+       close as possible to AP's original palette for at-a-glance legibility */
+    --pink:#CD3636;
+    --blue:#00659D;
+    --gray:#9AA0A6;
+    --paper:rgba(255,255,255,.92);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;font-family:var(--tn-sans);color:var(--tn-ink);background:#e9eceb;}
+
+  /* ---- sticky map stage ---- */
+  #stage{
+    position:sticky;
+    top:0;
+    height:100vh;
+    width:100%;
+    overflow:hidden;
+    z-index:1;
+  }
+  #map{position:absolute;inset:0;}
+
+  /* ---- overlay: headline / year ---- */
+  #overlay{
+    position:absolute;
+    top:0; left:0;
+    max-width:420px;
+    background:var(--paper);
+    padding:20px 24px 24px;
+    pointer-events:none;
+    backdrop-filter: blur(2px);
+    box-shadow:var(--shadow-small);
+  }
+  #overlay h1{
+    font-family:var(--tn-sans);
+    font-size:1.6rem;
+    line-height:1.2;
+    margin:0 0 8px;
+    font-weight:800;
+    letter-spacing:-.2px;
+    color:var(--tn-ink);
+  }
+  #overlay h1 .settlements{color:var(--pink);}
+  #overlay h1 .outposts{color:var(--blue);}
+  #year{
+    font-family:var(--tn-sans);
+    font-size:3.4rem;
+    font-weight:900;
+    line-height:1;
+    margin-top:8px;
+    letter-spacing:-2px;
+    color:var(--tn-primary);
+  }
+  #caption{
+    margin-top:10px;
+    font-family:var(--tn-sans);
+    font-size:.95rem;
+    line-height:1.4;
+    letter-spacing:.16px;
+    max-width:340px;
+    color:var(--tn-standfirst);
+    min-height:2.6em;
+  }
+
+  /* ---- legend ---- */
+  #legend{
+    position:absolute;
+    bottom:0; left:0;
+    background:var(--paper);
+    padding:10px 16px;
+    font-family:var(--tn-sans);
+    font-size:.78rem;
+    color:var(--tn-label);
+    display:flex;
+    gap:16px;
+    flex-wrap:wrap;
+    max-width:100%;
+    box-shadow:var(--shadow-small);
+  }
+  #legend span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+  #legend i{width:10px;height:10px;border-radius:50%;display:inline-block;}
+
+  /* ---- source note ---- */
+  #source{
+    position:absolute;
+    bottom:0; right:0;
+    background:var(--paper);
+    padding:8px 12px;
+    font-family:var(--tn-sans);
+    font-size:.7rem;
+    color:var(--tn-label);
+    max-width:260px;
+    text-align:right;
+    box-shadow:var(--shadow-small);
+  }
+
+  /* ---- scroll track: invisible, just gives scroll length driving the animation ----
+     NOTE: keep this layer BEHIND the sticky stage (z-index:-1, no visible content).
+     Giving it a positive z-index (to layer story cards over the map) triggers a
+     WebGL-canvas compositing bug in some browsers where the sticky map goes blank
+     while scrolled. Instead, story cards live inside #stage itself (see .step-card
+     below) and are shown/hidden by scroll position via JS, not by DOM overlap. */
+  #scrollTrack{
+    position:relative;
+    height:600vh; /* total scroll distance driving the animation — tune to taste */
+    margin-top:-100vh; /* pulls back under the sticky stage */
+    z-index:-1;
+    pointer-events:none;
+  }
+
+  /* ---- story cards: live inside #stage, faded in/out by JS based on scroll progress ---- */
+  .step-card{
+    position:absolute;
+    right:24px;
+    top:50%;
+    transform:translateY(-50%);
+    max-width:360px;
+    background:#fff;
+    padding:18px 20px;
+    border-radius:var(--radius);
+    border-left:3px solid var(--tn-primary);
+    font-family:var(--tn-sans);
+    font-size:.95rem;
+    line-height:1.5;
+    color:var(--tn-ink);
+    box-shadow:var(--shadow-card);
+    opacity:0;
+    transition:opacity .4s ease;
+    pointer-events:none;
+  }
+  .step-card.visible{opacity:1;}
+  .step-card h2{
+    font-family:var(--tn-sans);
+    font-size:1.1rem;
+    font-weight:800;
+    letter-spacing:-.2px;
+    color:var(--tn-primary);
+    margin:0 0 6px;
+  }
+
+  #end-spacer{height:20vh;}
+
+  /* ---- dev/handoff note ---- */
+  #note{
+    max-width:640px;
+    margin:40px auto 120px;
+    padding:0 24px;
+    font-family:var(--tn-sans);
+    font-size:.85rem;
+    line-height:1.6;
+    color:var(--tn-label);
+  }
+  #note h2{font-family:var(--tn-sans);font-weight:800;font-size:1.1rem;color:var(--tn-ink);}
+  #note code{background:#f0f0f0;padding:1px 5px;border-radius:3px;font-size:.82em;}
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <div id="map"></div>
+
+  <div id="overlay">
+    <h1>Israeli <span class="settlements">settlements</span> and <span class="outposts">outposts</span> in the West Bank</h1>
+    <div id="year">1967</div>
+    <div id="caption"></div>
+  </div>
+
+  <div id="legend">
+    <span><i style="background:var(--pink)"></i>Settlement</span>
+    <span><i style="background:var(--blue)"></i>Outpost</span>
+    <span><i style="background:var(--gray)"></i>Farm / industrial / other</span>
+  </div>
+
+  <div id="source">Data: Peace Now (GIS layers, updated Nov 2024)<br>Basemap: OpenFreeMap / OpenStreetMap contributors</div>
+
+  <div class="step-card" data-from="0" data-to="0.08">
+    <h2>1967</h2>
+    Israel captures the West Bank, east Jerusalem and the Gaza Strip in the Mideast war. Settlement construction begins soon after.
+  </div>
+  <div class="step-card" data-from="0.12" data-to="0.32">
+    <h2>Half a century of settlements</h2>
+    In 56 years, Israel has built well over 100 settlements scattered across the West Bank. Settlers have also built scores of unauthorized outposts, tolerated or even encouraged by the government.
+  </div>
+  <div class="step-card" data-from="0.4" data-to="0.62">
+    <h2>Outposts multiply</h2>
+    From the late 1990s, small unauthorized outposts spread rapidly alongside official settlements — some later legalized retroactively.
+  </div>
+  <div class="step-card" data-from="0.7" data-to="1.01">
+    <h2>Dwindling two-state prospects</h2>
+    With more than 500,000 Israeli settlers now living in the West Bank, partitioning the territory for a two-state solution grows more difficult.
+  </div>
+</div>
+
+<div id="scrollTrack"></div>
+<div id="end-spacer"></div>
+
+<div id="note">
+  <h2>Notes for recreation / animation</h2>
+  <p>This is a functional reference build, not the final graphic — it demonstrates the interaction mechanics and carries the real data so the look can be rebuilt in whatever tool/engine is used for the final piece (After Effects, a custom WebGL build, etc).</p>
+  <p><b>Interaction:</b> the map is pinned (<code>position:sticky</code>) while the page scrolls. Scroll progress (0–1) maps linearly to a year between 1967–2024. Points appear when their <code>year</code> property is ≤ the current year — see the <code>updateYear()</code> function in the page source. This mirrors the original AP graphic's approach (a MapLibre <code>circle-opacity</code> expression keyed to a scrubbed year).</p>
+  <p><b>Data:</b> <code>data/settlements.geojson</code> — 426 points (163 settlements, 120 outposts, 120 farms, 14 industrial areas, 6 tourism sites, 2 other, 1 planned), each with <code>name</code>, <code>name_he</code>, <code>type</code>, <code>year</code>. 18 features (mostly industrial areas/councils) have no meaningful founding year in the source data and are always shown. <code>data/green_line.geojson</code> — the 1949 Armistice Line, for context.</p>
+  <p><b>Color key:</b> settlements <code>#CD3636</code> (red), outposts <code>#00659D</code> (blue). Other types shown in neutral gray <code>#9AA0A6</code> so they don't compete visually but stay visible for reference.</p>
+  <p><b>Basemap:</b> OpenFreeMap's "positron" vector style (free, no key, no rate limit), a stand-in for AP's ESRI/OSM basemap. Used as a vector style rather than flattened raster tiles specifically so labels can be filtered by admin level — the <code>label_state</code> layer (Jordan's governorates, Israeli/Palestinian districts) is hidden, leaving only country/territory-level place names. For a final production piece, swap the <code>style:</code> URL for a licensed/custom basemap.</p>
+  <p><b>Attribution requirement:</b> the underlying settlement data belongs to Peace Now (an Israeli anti-settlement monitoring group) — any published version should credit "Data: Peace Now" as AP's original did.</p>
+  <p><b>Type &amp; brand:</b> verified against a live rendered News article on thenationalnews.com rather than trusting the site's generic CSS variables alone — those name <code>Playfair Display</code> as the "primary" font, but that face turns out to only be used for opinion pull-quotes; every actual News headline, standfirst and byline renders in <code>Inter</code>. So headline/year use Inter 800/900 (matching the site's real 48px/800 H1 treatment, scaled down for this panel), and standfirst-style caption text uses Inter 400 at <code>#999</code> (matching the live standfirst color). Card shadows/radius use the site's own <code>--box-shadow</code> and <code>--global-border-radius-1</code> tokens.</p>
+</div>
+
+<script>
+const YEAR_MIN = 1967;
+const YEAR_MAX = 2024;
+
+// OpenFreeMap (free, no key, no rate limit) — a standard OpenMapTiles-schema
+// vector basemap. Used (rather than a flattened raster tile) specifically so
+// admin-level place labels (country vs. state/governorate) can be filtered —
+// see the visibility toggle below.
+const map = new maplibregl.Map({
+  container: 'map',
+  style: 'https://tiles.openfreemap.org/styles/positron',
+  center: [35.30, 31.95],
+  zoom: 7.6,
+  interactive: false, // scroll drives the story, not free map interaction
+  attributionControl: false
+});
+window.map = map;
+map.on('error', (e) => console.error('MAPLIBRE ERROR', e.error));
+
+window.addEventListener('resize', () => map.resize());
+
+map.on('load', async () => {
+  map.resize();
+
+  // Hide sub-country administrative labels (e.g. Jordan's governorates) —
+  // keep only country/territory-level place names (label_country_*).
+  if (map.getLayer('label_state')) {
+    map.setLayoutProperty('label_state', 'visibility', 'none');
+  }
+
+  // Force every text label to Latin script. This style's default text-field
+  // appends "name:nonlatin" (Hebrew/Arabic here) on a second line whenever
+  // present — override to a straight Latin-name coalesce instead.
+  const LATIN_ONLY_TEXT_FIELD = ['coalesce', ['get', 'name:latin'], ['get', 'name_en'], ['get', 'name']];
+  for (const layer of map.getStyle().layers) {
+    if (layer.type !== 'symbol') continue;
+    const textField = layer.layout && layer.layout['text-field'];
+    // only touch layers whose default text-field appends a nonlatin script —
+    // leave road-shield/ref-number layers (no "name" property) untouched
+    if (textField && JSON.stringify(textField).includes('nonlatin')) {
+      map.setLayoutProperty(layer.id, 'text-field', LATIN_ONLY_TEXT_FIELD);
+    }
+  }
+  const [settlements, greenLine] = await Promise.all([
+    fetch('data/settlements.geojson').then(r => r.json()),
+    fetch('data/green_line.geojson').then(r => r.json())
+  ]);
+
+  map.addSource('green-line', { type: 'geojson', data: greenLine });
+  map.addLayer({
+    id: 'green-line-layer',
+    type: 'line',
+    source: 'green-line',
+    paint: { 'line-color': '#555', 'line-width': 1.4, 'line-dasharray': [2, 2], 'line-opacity': .6 }
+  });
+
+  map.addSource('settlements', { type: 'geojson', data: settlements });
+
+  // Points with no year (infrastructure/no-date) always show, at low opacity/gray.
+  map.addLayer({
+    id: 'points-nodate',
+    type: 'circle',
+    source: 'settlements',
+    filter: ['!', ['has', 'year']],
+    paint: {
+      'circle-radius': 3,
+      'circle-color': '#9AA0A6',
+      'circle-opacity': .5,
+      'circle-stroke-width': .5,
+      'circle-stroke-color': '#fff'
+    }
+  });
+
+  // Dated points: color by type, opacity/visibility gated by the scrubbed year.
+  map.addLayer({
+    id: 'points-dated',
+    type: 'circle',
+    source: 'settlements',
+    filter: ['has', 'year'],
+    paint: {
+      'circle-radius': [
+        'match', ['get', 'type'],
+        'settlement', 4.5,
+        'outpost', 3.5,
+        3
+      ],
+      'circle-color': [
+        'match', ['get', 'type'],
+        'settlement', '#CD3636',
+        'outpost', '#00659D',
+        '#9AA0A6'
+      ],
+      'circle-opacity': [
+        'case',
+        ['<=', ['to-number', ['get', 'year']], YEAR_MIN],
+        .85, 0
+      ],
+      'circle-stroke-width': .6,
+      'circle-stroke-color': '#fff'
+    }
+  });
+
+  const yearEl = document.getElementById('year');
+
+  function updateYear(year) {
+    year = Math.round(year);
+    yearEl.textContent = year;
+    map.setPaintProperty('points-dated', 'circle-opacity', [
+      'case',
+      ['<=', ['to-number', ['get', 'year']], year],
+      .85, 0
+    ]);
+  }
+
+  // ---- scroll -> year, and story-card visibility ----
+  const track = document.getElementById('scrollTrack');
+  const stepCards = Array.from(document.querySelectorAll('.step-card'));
+  function onScroll() {
+    const rect = track.getBoundingClientRect();
+    const total = track.offsetHeight - window.innerHeight;
+    const scrolled = Math.min(Math.max(-rect.top, 0), total);
+    const progress = total > 0 ? scrolled / total : 0;
+    const year = YEAR_MIN + progress * (YEAR_MAX - YEAR_MIN);
+    updateYear(year);
+
+    for (const card of stepCards) {
+      const from = parseFloat(card.dataset.from);
+      const to = parseFloat(card.dataset.to);
+      card.classList.toggle('visible', progress >= from && progress < to);
+    }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+});
+</script>
+
+</body>
+</html>

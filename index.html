@@ -235,8 +235,8 @@ const YEAR_MAX = 2024;
 const map = new maplibregl.Map({
   container: 'map',
   style: 'https://tiles.openfreemap.org/styles/positron',
-  center: [35.30, 31.95],
-  zoom: 7.6,
+  center: [35.267, 31.948], // West Bank centroid (UN OCHA COD-AB admin1)
+  zoom: 7.86, // ~20% closer than 7.6, keeping the West Bank as the focus
   interactive: false, // scroll drives the story, not free map interaction
   attributionControl: false
 });

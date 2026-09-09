@@ -261,6 +261,23 @@
 </div>
 
 <script>
+// Pin #stage/#scrollTrack sizing to a measured pixel height rather than the
+// `vh` CSS unit. When this page is embedded via iframe in a CMS (Arc XP
+// etc.), the iframe's own box height and its internal 100vh calculation can
+// end up slightly out of sync — the symptom is a strip of this page's body
+// background peeking through below the map, inside the embed box. Setting
+// heights in real pixels from window.innerHeight sidesteps that entirely.
+function sizeStageToViewport() {
+  const vh = window.innerHeight;
+  const stage = document.getElementById('stage');
+  const track = document.getElementById('scrollTrack');
+  stage.style.height = vh + 'px';
+  track.style.marginTop = -vh + 'px';
+  track.style.height = (vh * 6) + 'px'; // matches the 600vh scroll-length in CSS
+}
+sizeStageToViewport();
+window.addEventListener('resize', sizeStageToViewport);
+
 const YEAR_MIN = 1967;
 const YEAR_MAX = 2024;
 

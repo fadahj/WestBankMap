@@ -386,6 +386,8 @@ map.on('load', async () => {
   map.addSource('settlements', { type: 'geojson', data: settlements });
 
   // Points with no year (infrastructure/no-date) always show, at low opacity/gray.
+  // Inserted below the basemap's text labels so place names stay legible
+  // over the dots rather than being covered by them.
   map.addLayer({
     id: 'points-nodate',
     type: 'circle',
@@ -398,7 +400,7 @@ map.on('load', async () => {
       'circle-stroke-width': .5,
       'circle-stroke-color': '#fff'
     }
-  });
+  }, firstSymbolLayer && firstSymbolLayer.id);
 
   // Dated points: color by type, opacity/visibility gated by the scrubbed year.
   map.addLayer({
@@ -432,7 +434,7 @@ map.on('load', async () => {
         1, 0
       ]
     }
-  });
+  }, firstSymbolLayer && firstSymbolLayer.id);
 
   const yearEl = document.getElementById('year');
 

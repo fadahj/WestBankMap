@@ -128,17 +128,25 @@
   #legend i{width:10px;height:10px;border-radius:50%;display:inline-block;}
 
   /* ---- source note ---- */
-  #source{
+  #bottom-right-stack{
     position:absolute;
     bottom:0; right:0;
-    background:var(--paper);
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+  }
+  #brand-logo{
+    height:34px;
+    width:auto;
+    margin:0 12px 6px;
+  }
+  #source{
     padding:8px 12px;
     font-family:var(--tn-sans);
     font-size:.7rem;
     color:var(--tn-ink);
     white-space:nowrap;
     text-align:right;
-    box-shadow:var(--shadow-small);
   }
 
   /* ---- scroll track: invisible, just gives scroll length driving the animation ----
@@ -216,7 +224,10 @@
     </div>
   </div>
 
-  <div id="source">Data: Peace Now (GIS layers, updated Nov 2024)<br>Basemap: OpenFreeMap / OpenStreetMap contributors</div>
+  <div id="bottom-right-stack">
+    <img id="brand-logo" src="assets/data-explained-logo.png" alt="Data Explained — The National">
+    <div id="source">Data: Peace Now (GIS layers, updated Nov 2024)<br>Basemap: OpenFreeMap / OpenStreetMap contributors</div>
+  </div>
 
   <div class="step-card" data-from="0" data-to="0.08">
     <h2>1967</h2>

@@ -348,7 +348,12 @@ map.on('load', async () => {
         .85, 0
       ],
       'circle-stroke-width': .6,
-      'circle-stroke-color': '#fff'
+      'circle-stroke-color': '#fff',
+      'circle-stroke-opacity': [
+        'case',
+        ['<=', ['to-number', ['get', 'year']], YEAR_MIN],
+        1, 0
+      ]
     }
   });
 
@@ -357,11 +362,9 @@ map.on('load', async () => {
   function updateYear(year) {
     year = Math.round(year);
     yearEl.textContent = year;
-    map.setPaintProperty('points-dated', 'circle-opacity', [
-      'case',
-      ['<=', ['to-number', ['get', 'year']], year],
-      .85, 0
-    ]);
+    const revealed = ['<=', ['to-number', ['get', 'year']], year];
+    map.setPaintProperty('points-dated', 'circle-opacity', ['case', revealed, .85, 0]);
+    map.setPaintProperty('points-dated', 'circle-stroke-opacity', ['case', revealed, 1, 0]);
   }
 
   // ---- scroll -> year, and story-card visibility ----

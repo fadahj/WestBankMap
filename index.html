@@ -282,6 +282,16 @@ map.on('load', async () => {
       map.setLayoutProperty(layer.id, 'text-field', LATIN_ONLY_TEXT_FIELD);
     }
   }
+
+  // Nudge the "Occupied West Bank" label right, off of Jerusalem/the Green
+  // Line, without touching any other country label's position.
+  if (map.getLayer('label_country_3')) {
+    map.setLayoutProperty('label_country_3', 'text-offset', [
+      'case',
+      ['==', ['get', 'iso_a2'], 'PS'], ['literal', [3, 0]],
+      ['literal', [0, 0]]
+    ]);
+  }
   const [settlements, greenLine] = await Promise.all([
     fetch('data/settlements.geojson').then(r => r.json()),
     fetch('data/green_line.geojson').then(r => r.json())

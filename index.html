@@ -278,6 +278,19 @@ function sizeStageToViewport() {
 sizeStageToViewport();
 window.addEventListener('resize', sizeStageToViewport);
 
+// Standalone page, this is redundant — window 'resize' already covers it.
+// Embedded via iframe in a CMS (Arc XP etc.), the parent sometimes resizes
+// the iframe element itself (fixed height set upfront, then adjusted after
+// its own layout/measurement pass finishes) in a way that doesn't reliably
+// fire a 'resize' event inside the iframe's own document. A ResizeObserver
+// on <html> catches any layout-viewport size change regardless of what
+// triggered it, so this stays correct even in that case. Also re-check on
+// a short delay a few times after load as a last-resort net.
+if (window.ResizeObserver) {
+  new ResizeObserver(sizeStageToViewport).observe(document.documentElement);
+}
+[100, 500, 1500, 3000].forEach(ms => setTimeout(sizeStageToViewport, ms));
+
 const YEAR_MIN = 1967;
 const YEAR_MAX = 2024;
 

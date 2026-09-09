@@ -10,6 +10,25 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
+  /* Inter Display — the optical-size cut tuned for large headline text (tighter
+     tracking than regular Inter at big sizes). Self-hosted from the official
+     Inter 4.0 release (SIL OFL, see fonts/LICENSE.txt) rather than Google
+     Fonts, which only serves the regular optical size under the name "Inter". */
+  @font-face {
+    font-family: "InterDisplay";
+    font-style: normal;
+    font-weight: 800;
+    font-display: swap;
+    src: url("fonts/InterDisplay-ExtraBold.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "InterDisplay";
+    font-style: normal;
+    font-weight: 900;
+    font-display: swap;
+    src: url("fonts/InterDisplay-Black.woff2") format("woff2");
+  }
+
   :root{
     /* The National brand — verified against a live News-section article
        (thenationalnews.com/news/.../one-in-three-new-web-pages...), not just
@@ -23,6 +42,7 @@
     --tn-standfirst:#999;      /* dek/standfirst color (rgb(153,153,153) on live article) */
     --tn-label:#767676;        /* byline-date / secondary label color */
     --tn-sans:"Inter", "Helvetica Neue", Arial, sans-serif; /* the ONLY font real News content uses */
+    --tn-display:"InterDisplay", "Inter", "Helvetica Neue", Arial, sans-serif; /* large headline/number sizes only */
 
     --shadow-small:0px 1px 2px 0px rgba(0,0,0,.10), 0px 1px 3px 0px rgba(103,110,118,.10);
     --shadow-card:0px 4px 4px -2px rgba(0,0,0,.10), 0px 10px 15px -3px rgba(0,0,0,.10);
@@ -71,7 +91,7 @@
     box-shadow:var(--shadow-small);
   }
   #overlay h1{
-    font-family:var(--tn-sans);
+    font-family:var(--tn-display);
     font-size:1.35rem;
     line-height:1.2;
     margin:0 0 6px;
@@ -82,7 +102,7 @@
   #overlay h1 .settlements{color:var(--pink);}
   #overlay h1 .outposts{color:var(--blue);}
   #year{
-    font-family:var(--tn-sans);
+    font-family:var(--tn-display);
     font-size:2.8rem;
     font-weight:900;
     line-height:1;
@@ -156,7 +176,7 @@
   }
   .step-card.visible{opacity:1;}
   .step-card h2{
-    font-family:var(--tn-sans);
+    font-family:var(--tn-display);
     font-size:1.1rem;
     font-weight:800;
     letter-spacing:-.2px;

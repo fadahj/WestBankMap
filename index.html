@@ -283,6 +283,17 @@ map.on('load', async () => {
     }
   }
 
+  // Bold the "Gaza" city label specifically, leaving every other city label
+  // in the layer's normal weight.
+  if (map.getLayer('label_city')) {
+    map.setLayoutProperty('label_city', 'text-font', [
+      'case',
+      ['==', ['coalesce', ['get', 'name:latin'], ['get', 'name_en'], ['get', 'name']], 'Gaza'],
+      ['literal', ['Noto Sans Bold']],
+      ['literal', ['Noto Sans Regular']]
+    ]);
+  }
+
   // Nudge the "Occupied West Bank" label right and up, off of Jerusalem/the
   // Green Line and into the gap between the Nablus and Ramallah labels,
   // without touching any other country label's position.
@@ -293,10 +304,25 @@ map.on('load', async () => {
       ['literal', [0, 0]]
     ]);
   }
-  const [settlements, greenLine] = await Promise.all([
+  const [settlements, greenLine, westBank] = await Promise.all([
     fetch('data/settlements.geojson').then(r => r.json()),
-    fetch('data/green_line.geojson').then(r => r.json())
+    fetch('data/green_line.geojson').then(r => r.json()),
+    fetch('data/west_bank_boundary.geojson').then(r => r.json())
   ]);
+
+  // Shade the West Bank itself a touch darker than the surrounding basemap.
+  // Boundary: UN OCHA (oPt) COD-AB admin1 "West Bank" polygon — the same
+  // authoritative source humanitarian orgs and most newsrooms use, not a
+  // hand-traced shape. Inserted below the basemap's own text labels (the
+  // first symbol layer) so place names stay crisp on top of the tint.
+  const firstSymbolLayer = map.getStyle().layers.find(l => l.type === 'symbol');
+  map.addSource('west-bank', { type: 'geojson', data: westBank });
+  map.addLayer({
+    id: 'west-bank-fill',
+    type: 'fill',
+    source: 'west-bank',
+    paint: { 'fill-color': '#000', 'fill-opacity': .06 }
+  }, firstSymbolLayer && firstSymbolLayer.id);
 
   map.addSource('green-line', { type: 'geojson', data: greenLine });
   map.addLayer({

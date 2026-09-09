@@ -283,12 +283,13 @@ map.on('load', async () => {
     }
   }
 
-  // Nudge the "Occupied West Bank" label right, off of Jerusalem/the Green
-  // Line, without touching any other country label's position.
+  // Nudge the "Occupied West Bank" label right and up, off of Jerusalem/the
+  // Green Line and into the gap between the Nablus and Ramallah labels,
+  // without touching any other country label's position.
   if (map.getLayer('label_country_3')) {
     map.setLayoutProperty('label_country_3', 'text-offset', [
       'case',
-      ['==', ['get', 'iso_a2'], 'PS'], ['literal', [3, 0]],
+      ['==', ['get', 'iso_a2'], 'PS'], ['literal', [3, -10.3]],
       ['literal', [0, 0]]
     ]);
   }

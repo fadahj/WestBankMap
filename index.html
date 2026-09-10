@@ -93,18 +93,13 @@
 
   /* ---- legend: stands alone, bottom-left corner ---- */
   #legend{
-    position:absolute;
-    bottom:0; left:0;
-    background:var(--paper);
-    padding:10px 16px;
+    margin-top:10px;
     font-family:var(--tn-sans);
     font-size:.78rem;
     color:var(--tn-label);
     display:flex;
     gap:16px;
     flex-wrap:wrap;
-    max-width:100%;
-    box-shadow:var(--shadow-small);
   }
   #legend span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
   #legend i{width:10px;height:10px;border-radius:50%;display:inline-block;}
@@ -211,12 +206,11 @@
 
   <div id="overlay">
     <h1>Israeli <span class="settlements">settlements</span> and <span class="outposts">outposts</span> in the West Bank</h1>
-  </div>
-
-  <div id="legend">
-    <span><i style="background:var(--pink)"></i>Settlement</span>
-    <span><i style="background:var(--blue)"></i>Outpost</span>
-    <span><i style="background:var(--gray)"></i>Farm / industrial / other</span>
+    <div id="legend">
+      <span><i style="background:var(--pink)"></i>Settlement</span>
+      <span><i style="background:var(--blue)"></i>Outpost</span>
+      <span><i style="background:var(--gray)"></i>Farm / industrial / other</span>
+    </div>
   </div>
 
   <div id="bottom-right-stack">

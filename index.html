@@ -161,7 +161,7 @@
   .step-card{
     position:absolute;
     right:24px;
-    bottom:115px;
+    bottom:95px;
     width:300px;
     background:var(--paper);
     backdrop-filter:blur(2px);
@@ -370,6 +370,17 @@ map.on('load', async () => {
       '',
       'circle_11_black'
     ]);
+    // Same "zoom" nesting restriction applies to text-size — can't wrap the
+    // original interpolate expression in a case. Since zoom is fixed on this
+    // page, replacing it with the interpolate's actual output at our zoom
+    // (~14.06px, computed at build time) works identically for every other
+    // city, while Gaza gets 17px to match the custom "Israel"/"Jordan" labels.
+    map.setLayoutProperty('label_city', 'text-size', [
+      'case',
+      ['==', ['coalesce', ['get', 'name:latin'], ['get', 'name_en'], ['get', 'name']], 'Gaza'],
+      17,
+      14.06
+    ]);
   }
 
   // Hide a few specific place labels cluttering the view — everything else
@@ -556,7 +567,7 @@ map.on('load', async () => {
   function positionYearAboveCard() {
     const visibleCard = stepCards.find(c => c.classList.contains('visible'));
     const cardHeight = visibleCard ? visibleCard.offsetHeight : 0;
-    yearEl.style.bottom = (115 + cardHeight + 16) + 'px'; // 115 matches .step-card's own `bottom`
+    yearEl.style.bottom = (95 + cardHeight + 16) + 'px'; // 95 matches .step-card's own `bottom`
   }
 
   function onScroll() {

@@ -380,7 +380,18 @@ map.on('load', async () => {
   if (map.getLayer('label_country_3')) {
     map.setLayoutProperty('label_country_3', 'text-offset', [
       'case',
-      ['==', ['get', 'iso_a2'], 'PS'], ['literal', [4.5, -15]],
+      ['==', ['get', 'iso_a2'], 'PS'], ['literal', [4.5, -18]],
+      ['literal', [0, 0]]
+    ]);
+  }
+
+  // Nudge "Jerusalem" left, away from the story card/legend area, without
+  // touching any other city-capital label's position.
+  if (map.getLayer('label_city_capital')) {
+    map.setLayoutProperty('label_city_capital', 'text-offset', [
+      'case',
+      ['==', ['coalesce', ['get', 'name:latin'], ['get', 'name_en'], ['get', 'name']], 'Jerusalem'],
+      ['literal', [-3, 0]],
       ['literal', [0, 0]]
     ]);
   }

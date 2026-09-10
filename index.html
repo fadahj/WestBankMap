@@ -357,11 +357,18 @@ map.on('load', async () => {
       ['literal', ['Noto Sans Bold']],
       ['literal', ['Noto Sans Regular']]
     ]);
+    // NOTE: the original default here was `['step', ['zoom'], 'circle_11_black',
+    // 9, '']` — a "zoom" expression nested inside a "case" branch, which the
+    // style spec forbids ("zoom" may only be a top-level input to step/
+    // interpolate). MapLibre silently rejected the whole property and kept
+    // the old value, which is why this looked like a no-op the first time.
+    // Dropping the zoom-step is safe here: this map's zoom is fixed well
+    // below 9 for the entire page, so that branch never applied anyway.
     map.setLayoutProperty('label_city', 'icon-image', [
       'case',
       ['==', ['coalesce', ['get', 'name:latin'], ['get', 'name_en'], ['get', 'name']], 'Gaza'],
       '',
-      ['step', ['zoom'], 'circle_11_black', 9, '']
+      'circle_11_black'
     ]);
   }
 
@@ -388,7 +395,7 @@ map.on('load', async () => {
   if (map.getLayer('label_country_3')) {
     map.setLayoutProperty('label_country_3', 'text-offset', [
       'case',
-      ['==', ['get', 'iso_a2'], 'PS'], ['literal', [4.5, -23]],
+      ['==', ['get', 'iso_a2'], 'PS'], ['literal', [6, -20]],
       ['literal', [0, 0]]
     ]);
   }

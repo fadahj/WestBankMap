@@ -402,6 +402,15 @@ map.on('load', async () => {
       ['literal', [0, 1]],
       ['literal', [0, 0]]
     ]);
+    // label_city_capital is bold by default for every capital — match
+    // "Amman" to the regular weight used elsewhere (e.g. "Tel Aviv" in
+    // label_city), leaving Jerusalem/other capitals at their normal bold.
+    map.setLayoutProperty('label_city_capital', 'text-font', [
+      'case',
+      ['==', ['coalesce', ['get', 'name:latin'], ['get', 'name_en'], ['get', 'name']], 'Amman'],
+      ['literal', ['Noto Sans Regular']],
+      ['literal', ['Noto Sans Bold']]
+    ]);
   }
 
   const [settlements, greenLine, westBank] = await Promise.all([

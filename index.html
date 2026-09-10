@@ -383,6 +383,18 @@ map.on('load', async () => {
     ]);
   }
 
+  // Match every other place-label layer's text-size to label_city's 14.06px
+  // so all place names (capitals, towns, villages) read as one consistent
+  // size instead of the basemap's built-in city/town/village hierarchy —
+  // zoom is fixed on this page, so a flat number works identically to each
+  // layer's original zoom-interpolated default. Gaza is untouched (it lives
+  // in label_city, handled above).
+  for (const id of ['label_city_capital', 'label_town', 'label_village', 'label_other']) {
+    if (map.getLayer(id)) {
+      map.setLayoutProperty(id, 'text-size', 14.06);
+    }
+  }
+
   // Hide a few specific place labels cluttering the view — everything else
   // in these layers stays, just these names filtered out.
   const HIDDEN_PLACE_NAMES = [

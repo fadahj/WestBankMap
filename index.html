@@ -267,6 +267,14 @@
 // end up slightly out of sync — the symptom is a strip of this page's body
 // background peeking through below the map, inside the embed box. Setting
 // heights in real pixels from window.innerHeight sidesteps that entirely.
+// Holds the MapLibre instance once constructed. NOT named `map` on window —
+// <div id="map"> gets auto-exposed as window.map by the browser (any element
+// with an id is exposed as a same-named global) before this script even
+// runs, so checking `window.map` here would match that DOM element on the
+// very first call (before the real map is constructed below) and crash
+// calling .resize() on a plain div, aborting the whole script silently.
+let mapInstance = null;
+
 function sizeStageToViewport() {
   const vh = window.innerHeight;
   const stage = document.getElementById('stage');
@@ -274,6 +282,14 @@ function sizeStageToViewport() {
   stage.style.height = vh + 'px';
   track.style.marginTop = -vh + 'px';
   track.style.height = (vh * 6) + 'px'; // matches the 600vh scroll-length in CSS
+  // MapLibre's actual WebGL canvas buffer does NOT automatically follow a
+  // container resize done via plain CSS/JS — it needs an explicit resize()
+  // call to re-measure the container. Without this, the container (and thus
+  // the legend/logo/overlay boxes anchored to it) can grow to the correct
+  // size while the map canvas itself stays stuck at its original, smaller
+  // size — leaving exactly this bug's symptom: a gray gap of body
+  // background below a too-small map.
+  if (mapInstance) mapInstance.resize();
 }
 sizeStageToViewport();
 window.addEventListener('resize', sizeStageToViewport);
@@ -306,10 +322,11 @@ const map = new maplibregl.Map({
   interactive: false, // scroll drives the story, not free map interaction
   attributionControl: false
 });
-window.map = map;
+window.map = map; // for devtools console access — sizeStageToViewport() uses mapInstance, not this
+mapInstance = map;
 map.on('error', (e) => console.error('MAPLIBRE ERROR', e.error));
-
-window.addEventListener('resize', () => map.resize());
+// map.resize() on any size change is handled by sizeStageToViewport() above
+// (window 'resize', ResizeObserver, and delayed re-checks all funnel through it).
 
 map.on('load', async () => {
   map.resize();

@@ -53,7 +53,7 @@
        close as possible to AP's original palette for at-a-glance legibility */
     --pink:#CD3636;
     --blue:#00659D;
-    --gray:#9AA0A6;
+    --other:#FF8200; /* brand orange (--tn-section-sport in brand-assets/tokens.css) */
     --paper:rgba(255,255,255,.92);
   }
   *{box-sizing:border-box;}
@@ -209,7 +209,7 @@
     <div id="legend">
       <span><i style="background:var(--pink)"></i>Settlement</span>
       <span><i style="background:var(--blue)"></i>Outpost</span>
-      <span><i style="background:var(--gray)"></i>Farm / industrial / other</span>
+      <span><i style="background:var(--other)"></i>Farm / industrial / other</span>
     </div>
   </div>
 
@@ -422,7 +422,7 @@ map.on('load', async () => {
     filter: ['!', ['has', 'year']],
     paint: {
       'circle-radius': 3,
-      'circle-color': '#9AA0A6',
+      'circle-color': '#FF8200',
       'circle-opacity': .5,
       'circle-stroke-width': .5,
       'circle-stroke-color': '#fff'
@@ -446,7 +446,7 @@ map.on('load', async () => {
         'match', ['get', 'type'],
         'settlement', '#CD3636',
         'outpost', '#00659D',
-        '#9AA0A6'
+        '#FF8200'
       ],
       'circle-opacity': [
         'case',

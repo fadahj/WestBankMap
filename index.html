@@ -162,7 +162,7 @@
     position:absolute;
     right:24px;
     bottom:115px;
-    width:360px;
+    width:300px;
     background:var(--paper);
     backdrop-filter:blur(2px);
     padding:18px 20px;
@@ -347,13 +347,21 @@ map.on('load', async () => {
   }
 
   // Bold the "Gaza" city label specifically, leaving every other city label
-  // in the layer's normal weight.
+  // in the layer's normal weight. Also drop its dot icon (every city label
+  // in this layer pairs its text with a small circle marker by default) —
+  // leave every other city's dot alone.
   if (map.getLayer('label_city')) {
     map.setLayoutProperty('label_city', 'text-font', [
       'case',
       ['==', ['coalesce', ['get', 'name:latin'], ['get', 'name_en'], ['get', 'name']], 'Gaza'],
       ['literal', ['Noto Sans Bold']],
       ['literal', ['Noto Sans Regular']]
+    ]);
+    map.setLayoutProperty('label_city', 'icon-image', [
+      'case',
+      ['==', ['coalesce', ['get', 'name:latin'], ['get', 'name_en'], ['get', 'name']], 'Gaza'],
+      '',
+      ['step', ['zoom'], 'circle_11_black', 9, '']
     ]);
   }
 
@@ -413,6 +421,41 @@ map.on('load', async () => {
     type: 'fill',
     source: 'west-bank',
     paint: { 'fill-color': '#000', 'fill-opacity': .06 }
+  }, firstSymbolLayer && firstSymbolLayer.id);
+
+  // The basemap's own "Israel"/"Jordan" country labels exist in the data
+  // (verified: both have a valid name:latin) but never render here — their
+  // label anchor is each country's overall polygon centroid, which falls
+  // well outside this tightly-zoomed West Bank view (projects off-canvas:
+  // Israel's anchor lands below the visible area, Jordan's to the right).
+  // Placing our own point labels, styled to match label_country_2 (Noto
+  // Sans Bold, 17px, black text, white halo), rather than fighting the
+  // off-screen anchors with an extreme text-offset.
+  map.addSource('country-labels', {
+    type: 'geojson',
+    data: {
+      type: 'FeatureCollection',
+      features: [
+        { type: 'Feature', properties: { name: 'Israel' }, geometry: { type: 'Point', coordinates: [34.85, 31.32] } },
+        { type: 'Feature', properties: { name: 'Jordan' }, geometry: { type: 'Point', coordinates: [36.0, 31.9] } }
+      ]
+    }
+  });
+  map.addLayer({
+    id: 'country-labels-layer',
+    type: 'symbol',
+    source: 'country-labels',
+    layout: {
+      'text-field': ['get', 'name'],
+      'text-font': ['Noto Sans Bold'],
+      'text-size': 17
+    },
+    paint: {
+      'text-color': '#000',
+      'text-halo-color': '#fff',
+      'text-halo-width': 1,
+      'text-halo-blur': 1
+    }
   }, firstSymbolLayer && firstSymbolLayer.id);
 
   map.addSource('green-line', { type: 'geojson', data: greenLine });

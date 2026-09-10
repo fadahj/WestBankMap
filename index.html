@@ -399,7 +399,7 @@ map.on('load', async () => {
     map.setLayoutProperty('label_city_capital', 'text-offset', [
       'case',
       ['==', ['coalesce', ['get', 'name:latin'], ['get', 'name_en'], ['get', 'name']], 'Jerusalem'],
-      ['literal', [0, 1]],
+      ['literal', [-1, 1]],
       ['literal', [0, 0]]
     ]);
     // label_city_capital is bold by default for every capital — match
@@ -446,7 +446,7 @@ map.on('load', async () => {
     data: {
       type: 'FeatureCollection',
       features: [
-        { type: 'Feature', properties: { name: 'Israel' }, geometry: { type: 'Point', coordinates: [34.85, 31.78] } },
+        { type: 'Feature', properties: { name: 'Israel' }, geometry: { type: 'Point', coordinates: [34.85, 31.95] } },
         { type: 'Feature', properties: { name: 'Jordan' }, geometry: { type: 'Point', coordinates: [35.95, 32.25] } }
       ]
     }

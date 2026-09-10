@@ -70,33 +70,13 @@
   }
   #map{position:absolute;inset:0;}
 
-  /* ---- top-left stack: bare year "ticker" sits above the headline's white
-     box, both anchored to the top-left corner ---- */
-  #top-left-stack{
+  /* ---- overlay: headline, top-left corner ---- */
+  #overlay{
     position:absolute;
     top:0; left:0;
-    display:flex;
-    flex-direction:column;
-    align-items:flex-start;
-  }
-
-  /* ---- year ticker: no background, sits directly on the map ---- */
-  #year{
-    font-family:var(--tn-display);
-    font-size:2.8rem;
-    font-weight:900;
-    line-height:1;
-    padding:16px 20px 0;
-    letter-spacing:-2px;
-    color:var(--tn-primary);
-    pointer-events:none;
-  }
-
-  /* ---- overlay: headline ---- */
-  #overlay{
     max-width:360px;
     background:var(--paper);
-    padding:10px 20px 20px;
+    padding:16px 20px 20px;
     pointer-events:none;
     backdrop-filter: blur(2px);
     box-shadow:var(--shadow-small);
@@ -168,11 +148,27 @@
   }
 
   /* ---- story cards: live inside #stage, faded in/out by JS based on scroll progress ---- */
+  /* #year's `bottom` is set dynamically in JS (see positionYearAboveCard())
+     — card height varies a lot between story beats (one is 3 short lines,
+     another is 5+ lines), so a fixed CSS offset would either overlap a tall
+     card or leave an odd gap under a short one. JS measures the currently-
+     visible card each time it changes and places the year right above it. */
+  #year{
+    position:absolute;
+    right:24px;
+    font-family:var(--tn-display);
+    font-size:2.8rem;
+    font-weight:900;
+    line-height:1;
+    letter-spacing:-2px;
+    color:var(--tn-ink);
+    pointer-events:none;
+  }
   .step-card{
     position:absolute;
     right:24px;
     bottom:90px;
-    max-width:360px;
+    width:360px;
     background:#fff;
     padding:18px 20px;
     border-radius:var(--radius);
@@ -214,11 +210,8 @@
 <div id="stage">
   <div id="map"></div>
 
-  <div id="top-left-stack">
-    <div id="year">1967</div>
-    <div id="overlay">
-      <h1>Israeli <span class="settlements">settlements</span> and <span class="outposts">outposts</span> in the West Bank</h1>
-    </div>
+  <div id="overlay">
+    <h1>Israeli <span class="settlements">settlements</span> and <span class="outposts">outposts</span> in the West Bank</h1>
   </div>
 
   <div id="legend">
@@ -231,6 +224,8 @@
     <img id="brand-logo" src="assets/data-explained-logo.png" alt="Data Explained — The National">
     <div id="source">Data: Peace Now (GIS layers, updated Nov 2024)<br>Basemap: OpenFreeMap / OpenStreetMap contributors</div>
   </div>
+
+  <div id="year">1967</div>
 
   <div class="step-card" data-from="0" data-to="0.08">
     <h2>1967</h2>
@@ -488,6 +483,16 @@ map.on('load', async () => {
   // ---- scroll -> year, and story-card visibility ----
   const track = document.getElementById('scrollTrack');
   const stepCards = Array.from(document.querySelectorAll('.step-card'));
+
+  // Card height varies a lot between story beats — position the year ticker
+  // right above whichever card is currently showing (falls back to the
+  // card's own bottom offset + a default gap if none are visible yet).
+  function positionYearAboveCard() {
+    const visibleCard = stepCards.find(c => c.classList.contains('visible'));
+    const cardHeight = visibleCard ? visibleCard.offsetHeight : 0;
+    yearEl.style.bottom = (90 + cardHeight + 16) + 'px';
+  }
+
   function onScroll() {
     const rect = track.getBoundingClientRect();
     const total = track.offsetHeight - window.innerHeight;
@@ -501,6 +506,7 @@ map.on('load', async () => {
       const to = parseFloat(card.dataset.to);
       card.classList.toggle('visible', progress >= from && progress < to);
     }
+    positionYearAboveCard();
   }
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();

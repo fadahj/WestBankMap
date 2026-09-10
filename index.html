@@ -104,20 +104,21 @@
   #legend span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
   #legend i{width:12px;height:12px;border-radius:50%;display:inline-block;}
 
-  /* ---- source note ---- */
+  /* ---- logo: bottom-right ---- */
   #bottom-right-stack{
     position:absolute;
     bottom:0; right:0;
-    display:flex;
-    flex-direction:column;
-    align-items:flex-end;
   }
   #brand-logo{
     height:41px;
     width:auto;
     margin:0 12px 6px;
   }
+
+  /* ---- source note: bottom-left ---- */
   #source{
+    position:absolute;
+    bottom:0; left:0;
     padding:8px 12px;
     font-family:var(--tn-sans);
     font-size:.7rem;
@@ -215,8 +216,9 @@
 
   <div id="bottom-right-stack">
     <img id="brand-logo" src="assets/data-explained-logo.png" alt="Data Explained — The National">
-    <div id="source">Data: Peace Now (GIS layers, updated Nov 2024)<br>Basemap: OpenFreeMap / OpenStreetMap contributors</div>
   </div>
+
+  <div id="source">Data: Peace Now (GIS layers, updated Nov 2024)<br>Basemap: OpenFreeMap / OpenStreetMap contributors</div>
 
   <div id="year">1967</div>
 

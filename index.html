@@ -167,9 +167,10 @@
   .step-card{
     position:absolute;
     right:24px;
-    bottom:90px;
+    bottom:115px;
     width:360px;
-    background:#fff;
+    background:var(--paper);
+    backdrop-filter:blur(2px);
     padding:18px 20px;
     border-radius:var(--radius);
     font-family:var(--tn-sans);
@@ -490,7 +491,7 @@ map.on('load', async () => {
   function positionYearAboveCard() {
     const visibleCard = stepCards.find(c => c.classList.contains('visible'));
     const cardHeight = visibleCard ? visibleCard.offsetHeight : 0;
-    yearEl.style.bottom = (90 + cardHeight + 16) + 'px';
+    yearEl.style.bottom = (115 + cardHeight + 16) + 'px'; // 115 matches .step-card's own `bottom`
   }
 
   function onScroll() {

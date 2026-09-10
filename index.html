@@ -249,17 +249,6 @@
 
 <div id="scrollTrack"></div>
 
-<div id="note">
-  <h2>Notes for recreation / animation</h2>
-  <p>This is a functional reference build, not the final graphic — it demonstrates the interaction mechanics and carries the real data so the look can be rebuilt in whatever tool/engine is used for the final piece (After Effects, a custom WebGL build, etc).</p>
-  <p><b>Interaction:</b> the map is pinned (<code>position:sticky</code>) while the page scrolls. Scroll progress (0–1) maps linearly to a year between 1967–2024. Points appear when their <code>year</code> property is ≤ the current year — see the <code>updateYear()</code> function in the page source. This mirrors the original AP graphic's approach (a MapLibre <code>circle-opacity</code> expression keyed to a scrubbed year).</p>
-  <p><b>Data:</b> <code>data/settlements.geojson</code> — 426 points (163 settlements, 120 outposts, 120 farms, 14 industrial areas, 6 tourism sites, 2 other, 1 planned), each with <code>name</code>, <code>name_he</code>, <code>type</code>, <code>year</code>. 18 features (mostly industrial areas/councils) have no meaningful founding year in the source data and are always shown. <code>data/green_line.geojson</code> — the 1949 Armistice Line, for context.</p>
-  <p><b>Color key:</b> settlements <code>#CD3636</code> (red), outposts <code>#00659D</code> (blue). Other types shown in neutral gray <code>#9AA0A6</code> so they don't compete visually but stay visible for reference.</p>
-  <p><b>Basemap:</b> OpenFreeMap's "positron" vector style (free, no key, no rate limit), a stand-in for AP's ESRI/OSM basemap. Used as a vector style rather than flattened raster tiles specifically so labels can be filtered by admin level — the <code>label_state</code> layer (Jordan's governorates, Israeli/Palestinian districts) is hidden, leaving only country/territory-level place names. For a final production piece, swap the <code>style:</code> URL for a licensed/custom basemap.</p>
-  <p><b>Attribution requirement:</b> the underlying settlement data belongs to Peace Now (an Israeli anti-settlement monitoring group) — any published version should credit "Data: Peace Now" as AP's original did.</p>
-  <p><b>Type &amp; brand:</b> verified against a live rendered News article on thenationalnews.com rather than trusting the site's generic CSS variables alone — those name <code>Playfair Display</code> as the "primary" font, but that face turns out to only be used for opinion pull-quotes; every actual News headline, standfirst and byline renders in <code>Inter</code>. So headline/year use Inter 800/900 (matching the site's real 48px/800 H1 treatment, scaled down for this panel), and standfirst-style caption text uses Inter 400 at <code>#999</code> (matching the live standfirst color). Card shadows/radius use the site's own <code>--box-shadow</code> and <code>--global-border-radius-1</code> tokens.</p>
-</div>
-
 <script>
 // Pin #stage/#scrollTrack sizing to a measured pixel height rather than the
 // `vh` CSS unit. When this page is embedded via iframe in a CMS (Arc XP

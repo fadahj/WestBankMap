@@ -373,7 +373,7 @@ map.on('load', async () => {
     'Ashdod', 'Rishon LeZion', 'Arad', 'Netanya', 'Deir el-Balah',
     'Tafas', 'Tafs',
     'Sahab', 'Al Karak', 'Bureij', 'al-Qarara',
-    'Ar Ramtha', 'Dimona', 'Az-Zawayda'
+    'Ar Ramtha', 'Dimona', 'Az-Zawayda', 'Ofakim'
   ];
   const nameNotHidden = ['!', ['in', ['coalesce', ['get', 'name:latin'], ['get', 'name_en'], ['get', 'name']], ['literal', HIDDEN_PLACE_NAMES]]];
   for (const id of ['label_city', 'label_city_capital', 'label_town', 'label_village', 'label_other']) {
@@ -388,7 +388,7 @@ map.on('load', async () => {
   if (map.getLayer('label_country_3')) {
     map.setLayoutProperty('label_country_3', 'text-offset', [
       'case',
-      ['==', ['get', 'iso_a2'], 'PS'], ['literal', [4.5, -21]],
+      ['==', ['get', 'iso_a2'], 'PS'], ['literal', [4.5, -23]],
       ['literal', [0, 0]]
     ]);
   }
